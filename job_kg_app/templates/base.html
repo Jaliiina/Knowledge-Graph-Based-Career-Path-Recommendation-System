@@ -1,0 +1,119 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}AI 求职知识图谱助手{% endblock %}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            background: #f5f7fb;
+            color: #111827;
+        }
+        /* 导航栏：浅蓝灰底色 + 粗体字体 + 当前页高亮 */
+        header {
+            background: #e6f0ff; /* 淡蓝灰底色，和页面风格统一 */
+            color: #1d2939;
+            padding: 10px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #c9d8e8; /* 浅蓝灰边框 */
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        /* AI Job KG 改成黑色艺术字风格 */
+        .logo {
+            font-weight: 800; /* 超粗体，艺术感更强 */
+            letter-spacing: 0.1em; /* 加大字间距，更有设计感 */
+            font-size: 16px;
+            color: #111827; /* 纯黑色，醒目不刺眼 */
+            font-family: "Microsoft YaHei UI", "PingFang SC", sans-serif; /* 适配中文的艺术感字体 */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05); /* 轻微阴影，增加层次感 */
+        }
+        nav a {
+            margin-left: 16px;
+            color: #374151;
+            font-size: 14px;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-weight: 600; /* 导航文字粗体 */
+        }
+        nav a:hover {
+            color: #2563eb;
+        }
+        /* 当前页高亮：只需要在对应页面的a标签加active类 */
+        nav a.active {
+            color: #2563eb; /* 当前页文字变主蓝色 */
+            font-weight: 700; /* 当前页字体再加粗 */
+        }
+        main {
+            max-width: 1100px;
+            margin: 24px auto 40px;
+            padding: 0 16px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 18px 22px 22px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        }
+        .page-title {
+            margin: 0 0 6px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .page-subtitle {
+            margin: 0 0 16px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: #2563eb;
+            color: #f9fafb;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            padding: 8px 0 18px;
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+<header>
+    <div class="logo">AI Job KG</div>
+    <nav>
+        <!-- 每个页面只给对应的a标签加active类 -->
+        <a href="{{ url_for('home') }}" {% if request.endpoint == 'home' %}class="active"{% endif %}>首页</a>
+        <a href="{{ url_for('explore_page') }}" {% if request.endpoint == 'explore_page' %}class="active"{% endif %}>职位图谱浏览</a>
+        <a href="{{ url_for('resume_kg_page') }}" {% if request.endpoint == 'resume_kg_page' %}class="active"{% endif %}>简历技能解析</a>
+        <a href="{{ url_for('match_diag_page') }}" {% if request.endpoint == 'match_diag_page' %}class="active"{% endif %}>匹配与诊断</a>
+        <a href="{{ url_for('path_reco_page') }}" {% if request.endpoint == 'path_reco_page' %}class="active"{% endif %}>职业路径推荐</a>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    求职技能知识图谱与简历智能诊断助手 · Neo4j + Flask
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

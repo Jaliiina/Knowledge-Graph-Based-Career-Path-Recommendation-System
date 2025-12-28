@@ -1,0 +1,831 @@
+{% extends "base.html" %}
+{% block title %}简历技能画像 · AI 求职知识图谱助手{% endblock %}
+
+{% block head_extra %}
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --secondary: #64748b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --border: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-tertiary: #94a3b8;
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 12px;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+        --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.1);
+    }
+
+    body {
+        background-color: var(--background);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 20px 60px;
+    }
+
+    /* ============== 头部区域 ============== */
+    .page-header {
+        margin-bottom: 32px;
+        text-align: left; /* 改为左对齐 */
+    }
+
+    .step-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 16px;
+        justify-content: flex-start; /* 改为左对齐 */
+    }
+
+    .step-indicator .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        font-size: 12px;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        line-height: 1.3;
+        text-align: left; /* 确保标题左对齐 */
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 800px;
+        margin: 0 0 24px 0; /* 去掉 auto，改为左对齐 */
+        line-height: 1.6;
+        text-align: left; /* 确保副标题左对齐 */
+        word-break: keep-all;  /* 添加这行，防止中文字词被断开 */
+        overflow-wrap: break-word;  /* 添加这行，确保在完整单词后换行 */
+    }
+
+    .highlight-box {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+        border-left: 4px solid var(--primary);
+        padding: 16px 20px;
+        border-radius: var(--radius-md);
+        margin-top: 16px;
+        text-align: left; /* 确保提示框内容左对齐 */
+    }
+
+    .highlight-box p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 0;
+        text-align: left; /* 确保段落左对齐 */
+    }
+
+    .highlight-box code {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        padding: 2px 6px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-family: 'SF Mono', Monaco, 'Cascadia Mono', 'Segoe UI Mono', monospace;
+    }
+
+    /* ============== 主要布局 ============== */
+    .main-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 16px;
+    }
+
+    @media (max-width: 1024px) {
+        .main-layout {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+
+    /* ============== 左侧输入区域 ============== */
+    .input-section {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .section-title .icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .section-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+
+    .input-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 24px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .textarea-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    .textarea-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .char-count {
+        font-size: 12px;
+        color: var(--text-tertiary);
+    }
+
+    textarea {
+        flex: 1;
+        width: 100%;
+        min-height: 300px;
+        padding: 18px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-primary);
+        resize: vertical;
+        transition: all 0.2s ease;
+        background: #fcfdfe;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    textarea::placeholder {
+        color: var(--text-tertiary);
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: var(--text-tertiary);
+    }
+
+    .btn-icon {
+        font-size: 16px;
+    }
+
+    .message-container {
+        margin-top: 16px;
+    }
+
+    .message {
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .message.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #065f46;
+        border-left: 4px solid var(--success);
+    }
+
+    .message.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #991b1b;
+        border-left: 4px solid var(--error);
+    }
+
+    .message-icon {
+        font-size: 18px;
+    }
+
+    .help-text {
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--text-tertiary);
+        line-height: 1.5;
+    }
+
+    .help-text strong {
+        color: var(--text-secondary);
+    }
+
+    /* ============== 右侧结果区域 ============== */
+    .results-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .result-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 24px;
+        height: fit-content;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        background: #f1f5f9;
+        color: var(--text-secondary);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .card-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    /* ============== 技能标签 ============== */
+    .skills-container {
+        margin-top: 16px;
+    }
+
+    .skills-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+        color: #1e40af;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid rgba(147, 197, 253, 0.5);
+        transition: all 0.2s ease;
+    }
+
+    .skill-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(37, 99, 235, 0.15);
+        border-color: #93c5fd;
+    }
+
+    .skill-tag.empty {
+        background: #f8fafc;
+        color: var(--text-tertiary);
+        border: 1px dashed var(--border);
+    }
+
+    .skills-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .skills-count {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* ============== 下一步区域 ============== */
+    .next-step-container {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-top: 8px;
+    }
+
+    .next-step-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .next-step-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #065f46;
+    }
+
+    .next-step-description {
+        font-size: 14px;
+        color: #047857;
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+
+    .next-step-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px 20px;
+        background: #10b981;
+        color: white;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        gap: 8px;
+    }
+
+    .next-step-button:hover {
+        background: #0da271;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .next-step-button.disabled {
+        background: var(--text-tertiary);
+        cursor: not-allowed;
+    }
+
+    .next-step-button.disabled:hover {
+        transform: none;
+        box-shadow: none;
+        background: var(--text-tertiary);
+    }
+
+    /* ============== 响应式调整 ============== */
+    @media (max-width: 768px) {
+        main {
+            padding: 16px 16px 40px;
+        }
+
+        .page-title {
+            font-size: 24px;
+        }
+
+        .page-subtitle {
+            font-size: 15px;
+        }
+
+        .input-card,
+        .result-card {
+            padding: 20px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        textarea {
+            min-height: 250px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 22px;
+        }
+
+        .section-title {
+            font-size: 16px;
+        }
+
+        .input-card,
+        .result-card {
+            padding: 16px;
+        }
+
+        textarea {
+            min-height: 200px;
+            padding: 14px;
+            font-size: 14px;
+        }
+
+        .skill-tag {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <div class="step-indicator">
+            <div class="step-number">2</div>
+            <span>生成个人技能画像</span>
+        </div>
+
+        <h1 class="page-title">简历技能解析与图谱映射</h1>
+
+        <p class="page-subtitle">
+            在下方粘贴简历文本，系统会基于技能词典识别技能，并写入知识图谱中的
+            <code>Person–HAS_SKILL–Skill</code> 关系。后续所有岗位匹配诊断与职业路径推荐都会复用这份"技能画像"。
+        </p>
+
+        <div class="highlight-box">
+            <p>💡 <strong>使用提示</strong>：系统将自动识别简历中的技能关键词，并与知识图谱中的技能节点建立关联，构建你的个人技能画像。</p>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-layout">
+        <!-- 左侧输入区域 -->
+        <div class="input-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon">📝</span>
+                    粘贴简历内容
+                </h2>
+            </div>
+
+            <p class="section-subtitle">
+                支持中文或英文简历。建议包含项目经历、技术栈、工具软件等关键信息，以获得更准确的技能识别。
+            </p>
+
+            <div class="input-card">
+                <form method="post">
+                    <div class="textarea-container">
+                        <div class="textarea-header">
+                            <label for="resume-textarea">简历文本</label>
+                            <span class="char-count">字符数: {{ resume_text|length if resume_text else 0 }}</span>
+                        </div>
+
+                        <textarea
+                            name="resume_text"
+                            id="resume-textarea"
+                            placeholder="请在这里粘贴你的简历内容，例如：
+
+• 教育背景：XX大学 计算机科学与技术 本科
+• 项目经历：
+  - 电商数据分析平台：使用Python、Pandas处理数据，SQL查询分析，Tableau可视化
+  - 招聘信息抓取系统：Requests+BeautifulSoup抓取数据，正则表达式提取技能，Neo4j构建图谱
+• 技能特长：
+  - 编程语言：Python、SQL、Java
+  - 数据分析：Excel、Tableau、Power BI
+  - 数据库：MySQL、Neo4j
+  - 其他：Git、Linux、Jupyter Notebook">{{ resume_text or '' }}</textarea>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">🔍</span>
+                            解析技能并写入知识图谱
+                        </button>
+
+                        <button type="button" id="fill-demo-btn" class="btn btn-secondary">
+                            <span class="btn-icon">📋</span>
+                            填入示例简历
+                        </button>
+                    </div>
+
+                    {% if message %}
+                    <div class="message-container">
+                        <div class="message {{ message.status }}">
+                            <span class="message-icon">
+                                {% if message.status == 'success' %}✅{% else %}⚠️{% endif %}
+                            </span>
+                            <span>{{ message.msg }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <p class="help-text">
+                        <strong>提示：</strong>当前使用的技能词典包含 <strong>{{ skill_list|length }}</strong> 个技能项。系统将基于词典进行关键词匹配，后续可升级为基于LLM的智能抽取。
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- 右侧结果区域 -->
+        <div class="results-section">
+            <!-- 本次解析结果 -->
+            <div class="result-card">
+                <div class="card-header">
+                    <span class="card-badge">本次解析结果</span>
+                </div>
+
+                <h3 class="card-title">识别到的技能</h3>
+
+                {% if extracted_skills %}
+                <p class="card-subtitle">
+                    已从简历文本中识别出 <strong>{{ extracted_skills|length }}</strong> 个技能：
+                </p>
+
+                <div class="skills-container">
+                    <div class="skills-grid">
+                        {% for sk in extracted_skills %}
+                        <span class="skill-tag">{{ sk }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="skills-stats">
+                        <div>本次解析识别</div>
+                        <div class="skills-count">{{ extracted_skills|length }} 项技能</div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="card-subtitle">
+                    解析后会在这里展示识别到的技能标签，方便快速核对。
+                </p>
+
+                <div class="skills-container">
+                    <div class="skills-grid">
+                        <span class="skill-tag empty">Python</span>
+                        <span class="skill-tag empty">SQL</span>
+                        <span class="skill-tag empty">机器学习</span>
+                        <span class="skill-tag empty">数据分析</span>
+                        <span class="skill-tag empty">Tableau</span>
+                        <span class="skill-tag empty">Git</span>
+                        <span class="skill-tag empty">Linux</span>
+                        <span class="skill-tag empty">Jupyter</span>
+                    </div>
+
+                    <div class="skills-stats">
+                        <div>本次解析识别</div>
+                        <div class="skills-count">0 项技能</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 当前技能画像 -->
+            <div class="result-card">
+                <div class="card-header">
+                    <span class="card-badge">已保存到知识图谱</span>
+                </div>
+
+                <h3 class="card-title">当前个人技能画像</h3>
+
+                {% if graph_skills %}
+                <p class="card-subtitle">
+                    这是在知识图谱中与你绑定的技能列表，后续所有匹配诊断与职业路径推荐都会使用这份画像：
+                </p>
+
+                <div class="skills-container">
+                    <div class="skills-grid">
+                        {% for sk in graph_skills %}
+                        <span class="skill-tag">{{ sk }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="skills-stats">
+                        <div>总技能数</div>
+                        <div class="skills-count">{{ graph_skills|length }} 项技能</div>
+                    </div>
+                </div>
+
+                <!-- 下一步区域 -->
+                <div class="next-step-container">
+                    <div class="next-step-header">
+                        <span class="icon">🚀</span>
+                        <h4 class="next-step-title">准备就绪，继续下一步</h4>
+                    </div>
+
+                    <p class="next-step-description">
+                        你的技能画像已就绪！建议用当前技能与目标岗位做匹配诊断，了解"哪些地方已经够用，哪些地方还需要补强"。
+                    </p>
+
+                    <a href="{{ url_for('match_diag_page') }}" class="next-step-button">
+                        <span>下一步：岗位匹配诊断</span>
+                        <span class="btn-icon">→</span>
+                    </a>
+                </div>
+                {% else %}
+                <p class="card-subtitle">
+                    知识图谱中暂未找到与你关联的技能。完成一次解析并写入成功后，这里会展示你的技能画像。
+                </p>
+
+                <div class="skills-container">
+                    <div class="skills-grid">
+                        <span class="skill-tag empty">等待解析简历...</span>
+                    </div>
+
+                    <div class="skills-stats">
+                        <div>总技能数</div>
+                        <div class="skills-count">0 项技能</div>
+                    </div>
+                </div>
+
+                <!-- 下一步区域 -->
+                <div class="next-step-container">
+                    <div class="next-step-header">
+                        <span class="icon">🚀</span>
+                        <h4 class="next-step-title">准备就绪，继续下一步</h4>
+                    </div>
+
+                    <p class="next-step-description">
+                        完成技能解析并写入知识图谱后，即可进行岗位匹配诊断。
+                    </p>
+
+                    <div class="next-step-button disabled">
+                        <span>请先解析简历生成技能画像</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 示例简历内容
+    (function() {
+        const demoText = `教育背景：
+2021.09 - 至今   XX大学   计算机科学与技术（本科）
+主修课程：数据结构、算法设计、数据库原理、机器学习、软件工程
+
+项目经历：
+1. 电商数据分析平台（2023.03 - 2023.06）
+- 使用Python（Pandas, NumPy）对用户行为数据进行清洗与特征工程
+- 基于SQL在MySQL中编写多表关联查询，统计分析转化率及复购率指标
+- 使用Tableau构建可视化仪表板，支持运营团队日常数据监控
+- 项目成果：提升了20%的数据处理效率，帮助识别出关键用户增长点
+
+2. 招聘信息抓取与职位画像系统（2023.09 - 至今）
+- 使用Requests + BeautifulSoup抓取主流招聘网站岗位信息
+- 利用正则表达式和NLTK从职位描述中抽取关键技能标签
+- 将岗位-技能关系存储到Neo4j图数据库，构建Job-Skill知识图谱
+- 开发了基于Flask的简单查询界面，支持技能关联分析
+
+3. 校园二手交易平台（2022.10 - 2023.01）
+- 使用Java Spring Boot开发后端RESTful API
+- 使用React构建响应式前端界面
+- 基于Redis实现商品浏览记录缓存，提升系统响应速度
+- 使用Git进行版本控制，采用GitFlow工作流
+
+技能特长：
+- 编程语言：Python（熟练）、SQL（熟练）、Java（良好）、JavaScript（了解）
+- 数据分析：Pandas、NumPy、Excel、Tableau、Power BI、统计分析
+- 数据库：MySQL、Neo4j、Redis（基础）
+- 开发工具：Git、Docker、Linux、Jupyter Notebook、VS Code
+- 英语水平：CET-6，能够流畅阅读英文技术文档
+
+获奖情况：
+- 2023年全国大学生数据挖掘竞赛 二等奖
+- 2022年校级"创新杯"软件设计大赛 一等奖`;
+
+        const demoBtn = document.getElementById('fill-demo-btn');
+        const textarea = document.getElementById('resume-textarea');
+
+        if (demoBtn && textarea) {
+            demoBtn.addEventListener('click', function() {
+                if (!textarea.value || confirm('是否覆盖当前内容，填入示例简历？')) {
+                    textarea.value = demoText;
+                    textarea.focus();
+
+                    // 更新字符数显示
+                    const charCount = document.querySelector('.char-count');
+                    if (charCount) {
+                        charCount.textContent = `字符数: ${demoText.length}`;
+                    }
+                }
+            });
+        }
+
+        // 实时更新字符数
+        if (textarea) {
+            textarea.addEventListener('input', function() {
+                const charCount = document.querySelector('.char-count');
+                if (charCount) {
+                    charCount.textContent = `字符数: ${this.value.length}`;
+                }
+            });
+        }
+    })();
+</script>
+{% endblock %}

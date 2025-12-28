@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}首页 · AI 求职知识图谱助手{% endblock %}
+
+{% block content %}
+
+<!-- 全局样式：完全匹配效果图字体/色调/布局 -->
+<style>
+/* 全局背景（和效果图一致的淡蓝渐变） */
+body {
+  background: linear-gradient(180deg, #f5faff 0%, #eef5ff 100%);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* 全局字体：匹配效果图的无衬线字体 */
+* {
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  letter-spacing: 0.1px;
+}
+
+/* 主色调变量（匹配效果图的蓝/绿/紫） */
+:root {
+  --color-overview: #367cf5;
+  --color-structure: #67c23a;
+  --color-geocity: #409eff;
+  --color-talent: #c062d4;
+  --text-title: #1d2939;
+  --text-sub: #475467;
+  --text-light: #667085;
+  --bg-card: #ffffff;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* 顶部标题区（完全匹配效果图） */
+.header-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 20px;
+  text-align: center;
+}
+
+.header-section .top-tag {
+  font-size: 12px;
+  color: #86909c;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.header-section h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-title);
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+
+.header-section .sub-desc {
+  font-size: 14px;
+  color: var(--text-sub);
+  margin: 0 0 8px;
+}
+
+.header-section .sub-desc-small {
+  font-size: 13px;
+  color: var(--text-light);
+  margin: 0 0 24px;
+}
+
+/* 功能标签栏（和效果图一致） */
+.function-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.function-tabs .tab-item {
+  padding: 6px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 14px;
+  color: var(--text-light);
+  background: #ffffff;
+  cursor: pointer;
+}
+
+/* 元信息行（和效果图一致） */
+.meta-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 32px;
+}
+
+.meta-line .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #c9d1d9;
+}
+
+.meta-line .highlight {
+  color: var(--color-overview);
+  font-weight: 500;
+}
+
+.meta-line .count {
+  color: var(--text-title);
+  font-weight: 500;
+}
+
+/* 功能卡片网格（和效果图一致的2列布局） */
+.features-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  padding: 0 20px;
+}
+
+/* 功能卡片（和效果图一致的样式） */
+.feature-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  border-top: 2px solid var(--color-overview);
+  position: relative;
+}
+
+/* 不同卡片的顶部边框色（匹配效果图） */
+.feature-card.structure {
+  border-top-color: var(--color-structure);
+}
+.feature-card.geocity {
+  border-top-color: var(--color-geocity);
+}
+.feature-card.talent {
+  border-top-color: var(--color-talent);
+}
+
+/* 卡片标题栏（和效果图一致） */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.card-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-title);
+  margin: 0;
+}
+
+/* 卡片右上角标签（和效果图一致） */
+.card-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: var(--color-overview);
+  background: rgba(54, 124, 245, 0.1);
+}
+
+/* 不同卡片的标签色（匹配效果图） */
+.feature-card.structure .card-badge {
+  color: var(--color-structure);
+  background: rgba(103, 194, 58, 0.1);
+}
+.feature-card.geocity .card-badge {
+  color: var(--color-geocity);
+  background: rgba(64, 158, 255, 0.1);
+}
+.feature-card.talent .card-badge {
+  color: var(--color-talent);
+  background: rgba(192, 98, 212, 0.1);
+}
+
+/* 标签小圆点（和效果图一致） */
+.card-badge .badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-overview);
+}
+.feature-card.structure .card-badge .badge-dot {
+  background: var(--color-structure);
+}
+.feature-card.geocity .card-badge .badge-dot {
+  background: var(--color-geocity);
+}
+.feature-card.talent .card-badge .badge-dot {
+  background: var(--color-talent);
+}
+
+/* 卡片描述文本（和效果图一致） */
+.card-desc {
+  font-size: 14px;
+  color: var(--text-sub);
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.card-desc-small {
+  font-size: 13px;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+/* 子功能标签（和效果图一致） */
+.sub-feature-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sub-feature-tags .tag-item {
+  font-size: 12px;
+  padding: 4px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  color: var(--text-light);
+}
+
+/* 卡片按钮（和效果图一致） */
+.card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--color-overview);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.card-btn::after {
+  content: "→";
+  font-size: 16px;
+}
+</style>
+
+<!-- 顶部标题区（完全匹配效果图文案+样式） -->
+<div class="header-section">
+  <div class="top-tag">AI JOB INTELLIGENCE · OVERVIEW</div>
+  <h1>AI 求职技能知识图谱 · 智能中枢</h1>
+  <p class="sub-desc">一眼看清AI岗位的技能结构、匹配度、缺失能力与职业路径。</p>
+  <p class="sub-desc-small">从总览到细节，用知识图谱把求职决策拆解开给你看。</p>
+
+  <!-- 功能标签栏（和效果图一致） -->
+  <div class="function-tabs">
+    <div class="tab-item">职位知识图谱</div>
+    <div class="tab-item">简历技能解析</div>
+    <div class="tab-item">岗位匹配诊断</div>
+    <div class="tab-item">职业路径推荐</div>
+  </div>
+
+  <!-- 元信息行（和效果图一致） -->
+  <div class="meta-line">
+    <span class="highlight">知识图谱驱动</span>
+    <span class="dot"></span>
+    <span>可视化模块 <span class="count">4</span></span>
+    <span class="dot"></span>
+    <span>功能视角 <span class="count">20+</span></span>
+  </div>
+</div>
+
+<!-- 功能卡片区域（完全匹配效果图文案+样式） -->
+<div class="features-grid">
+  <!-- 功能1：主大屏（匹配效果图“主大屏·AI市场全景”） -->
+  <div class="feature-card">
+    <div class="card-header">
+      <h3>功能1 · 职位知识图谱浏览</h3>
+      <span class="card-badge">
+        <span class="badge-dot"></span>
+        Overview
+      </span>
+    </div>
+    <p class="card-desc">
+      纵览AI岗位整体技能结构：按城市、AI方向、关键词分类，查看岗位在知识图谱中的技能脉络，一屏掌握岗位需求。
+    </p>
+    <p class="card-desc-small">
+      适合快速判断AI岗位的技能分布：哪些技能是核心、哪些城市岗位技能要求更高、哪些方向技能正在升级。
+    </p>
+    <div class="sub-feature-tags">
+      <span class="tag-item">城市筛选</span>
+      <span class="tag-item">AI方向分类</span>
+      <span class="tag-item">技能结构可视化</span>
+      <span class="tag-item">岗位技能对比</span>
+    </div>
+    <a class="card-btn" href="{{ url_for('explore_page') }}">
+      进入职位图谱浏览
+    </a>
+  </div>
+
+  <!-- 功能2：岗位结构大屏（匹配效果图“岗位结构大屏”） -->
+  <div class="feature-card structure">
+    <div class="card-header">
+      <h3>功能2 · 简历技能解析与映射</h3>
+      <span class="card-badge">
+        <span class="badge-dot"></span>
+        Structure
+      </span>
+    </div>
+    <p class="card-desc">
+      把简历拆成“技能 × 经验 × 学历”，自动抽取技能并映射到知识图谱的Skill节点，形成个人技能子图。
+    </p>
+    <p class="card-desc-small">
+      用词云、技能图谱把简历从“文字”变成“画像”，帮助你清晰了解自己的能力与岗位需求的匹配点。
+    </p>
+    <div class="sub-feature-tags">
+      <span class="tag-item">技能自动抽取</span>
+      <span class="tag-item">技能子图生成</span>
+      <span class="tag-item">能力分布可视化</span>
+      <span class="tag-item">简历技能评分</span>
+    </div>
+    <a class="card-btn" href="{{ url_for('resume_kg_page') }}">
+      进入简历技能解析
+    </a>
+  </div>
+
+  <!-- 功能3：城市与区域大屏（匹配效果图“城市与区域大屏”） -->
+  <div class="feature-card geocity">
+    <div class="card-header">
+      <h3>功能3 · 岗位匹配与技能诊断</h3>
+      <span class="card-badge">
+        <span class="badge-dot"></span>
+        Geo & City
+      </span>
+    </div>
+    <p class="card-desc">
+      从全国到城市的岗位-技能分布：基于知识图谱计算你的能力与目标岗位的匹配度，定位缺失技能。
+    </p>
+    <p class="card-desc-small">
+      想知道“哪个城市的岗位和你能力匹配度最高”“哪些区域的技能要求更贴合你”？在这里一次看完。
+    </p>
+    <div class="sub-feature-tags">
+      <span class="tag-item">匹配度计算</span>
+      <span class="tag-item">缺失技能识别</span>
+      <span class="tag-item">区域岗位推荐</span>
+      <span class="tag-item">技能补齐建议</span>
+    </div>
+    <a class="card-btn" href="{{ url_for('match_diag_page') }}">
+      进入匹配与诊断
+    </a>
+  </div>
+
+  <!-- 功能4：技能与人才大屏（匹配效果图“技能与人才大屏”） -->
+  <div class="feature-card talent">
+    <div class="card-header">
+      <h3>功能4 · 职业路径与技能推荐</h3>
+      <span class="card-badge">
+        <span class="badge-dot"></span>
+        Talent Portrait
+      </span>
+    </div>
+    <p class="card-desc">
+      聚焦“能力与岗位”：看清目标岗位的技能Top排行、学历/经验要求，以及技能成长路径。
+    </p>
+    <p class="card-desc-small">
+      用一整套技能网络回答两个问题：什么样的能力最吃香？要具备哪些技能，才能站在AI岗位的第一梯队？
+    </p>
+    <div class="sub-feature-tags">
+      <span class="tag-item">匹配岗位推荐</span>
+      <span class="tag-item">技能成长路径</span>
+      <span class="tag-item">目标岗位导航</span>
+      <span class="tag-item">竞争力分析</span>
+    </div>
+    <a class="card-btn" href="{{ url_for('path_reco_page') }}">
+      进入职业路径推荐
+    </a>
+  </div>
+</div>
+{% endblock %}

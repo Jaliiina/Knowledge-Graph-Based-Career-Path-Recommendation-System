@@ -1,0 +1,1442 @@
+{% extends "base.html" %}
+
+{% block title %}技能成长路径图谱 · AI 求职知识图谱助手{% endblock %}
+
+{% block head_extra %}
+<style>
+    :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --primary-light: #e0f2fe;
+        --secondary: #64748b;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --error: #ef4444;
+        --error-light: #fef2f2;
+        --purple: #8b5cf6;
+        --purple-light: #f3f0ff;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --border: #e2e8f0;
+        --border-light: #f1f5f9;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-tertiary: #94a3b8;
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+        --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background-color: var(--background);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    main {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px 20px 60px;
+    }
+
+    /* ============== 页面头部 ============== */
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .step-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
+    .step-indicator .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        font-size: 12px;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 800px;
+    }
+
+    /* ============== 主内容卡片 ============== */
+    .main-card {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        padding: 32px;
+        margin-top: 16px;
+    }
+
+    /* ============== 目标岗位选择 ============== */
+    .job-select-section {
+        margin-bottom: 32px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .section-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .job-select-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+    }
+
+    .job-select-form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .form-select {
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        color: var(--text-primary);
+        background: white;
+        transition: var(--transition);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-select option {
+        padding: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ============== 岗位推荐区域 ============== */
+    .job-recommendation-section {
+        margin-bottom: 32px;
+    }
+
+    .job-recommendation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: var(--text-tertiary);
+    }
+
+    .job-recommendation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .job-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .job-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .job-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--success));
+    }
+
+    .job-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .job-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .match-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        padding: 4px 10px;
+        background: var(--success-light);
+        color: var(--success);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .job-skills {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+
+    .job-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text-tertiary);
+    }
+
+    .skill-count {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* ============== 路径分析区域 ============== */
+    .path-analysis-section {
+        margin-bottom: 32px;
+    }
+
+    .path-analysis-layout {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .path-analysis-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* 时间线区域 */
+    .timeline-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        height: 100%;
+    }
+
+    .timeline-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .timeline-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .timeline-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .timeline-target {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 40px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 16px;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(to bottom, var(--primary), var(--warning), var(--error));
+        border-radius: 2px;
+    }
+
+    .timeline-phase {
+        position: relative;
+        margin-bottom: 32px;
+    }
+
+    .timeline-phase:last-child {
+        margin-bottom: 0;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: -38px;
+        top: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        z-index: 1;
+    }
+
+    .phase-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .phase-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .phase-title::before {
+        content: '';
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .phase-title.phase-1::before { background: var(--primary); }
+    .phase-title.phase-2::before { background: var(--warning); }
+    .phase-title.phase-3::before { background: var(--error); }
+
+    .phase-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-tertiary);
+    }
+
+    .phase-time {
+        background: var(--background);
+        padding: 2px 8px;
+        border-radius: 12px;
+    }
+
+    .phase-priority {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 11px;
+    }
+
+    .phase-priority.high {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+
+    .phase-priority.medium {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .phase-priority.low {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+    }
+
+    .phase-objective {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        line-height: 1.6;
+    }
+
+    .phase-skills {
+        margin-bottom: 16px;
+    }
+
+    .phase-skills-label {
+        font-size: 13px;
+        color: var(--text-tertiary);
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .phase-skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .phase-skill-tag {
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid;
+    }
+
+    .phase-skill-tag.phase-1 {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        border-color: rgba(37, 99, 235, 0.2);
+    }
+
+    .phase-skill-tag.phase-2 {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .phase-skill-tag.phase-3 {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .phase-advice {
+        background: var(--background);
+        padding: 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        border-left: 4px solid var(--primary);
+    }
+
+    /* 图谱区域 */
+    .graph-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .graph-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .graph-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--purple);
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .graph-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .graph-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    /* 图例 */
+    .graph-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: var(--background);
+        border-radius: var(--radius-md);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .legend-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .legend-dot.current {
+        background: var(--success);
+    }
+
+    .legend-dot.phase-1 {
+        background: var(--primary);
+    }
+
+    .legend-dot.phase-2 {
+        background: var(--warning);
+    }
+
+    .legend-dot.phase-3 {
+        background: var(--error);
+    }
+
+    .legend-dot.target {
+        background: var(--purple);
+    }
+
+    /* 图表容器 */
+    .graph-container {
+        flex: 1;
+        min-height: 500px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-light);
+        overflow: hidden;
+        position: relative;
+    }
+
+    #skillChart {
+        width: 100%;
+        height: 100%;
+    }
+
+    .graph-tooltip {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        font-size: 12px;
+        color: var(--text-secondary);
+        box-shadow: var(--shadow-sm);
+        z-index: 10;
+        max-width: 200px;
+    }
+
+    /* ============== 空状态 ============== */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-tertiary);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+
+    .empty-state-description {
+        font-size: 14px;
+        max-width: 400px;
+        margin: 0 auto 20px;
+        line-height: 1.6;
+    }
+
+    /* ============== 错误状态 ============== */
+    .error-card {
+        background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+        border: 1px solid #fecaca;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 32px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .error-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: white;
+        color: var(--error);
+        border-radius: 10px;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .error-content {
+        flex: 1;
+    }
+
+    .error-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #b91c1c;
+        margin-bottom: 8px;
+    }
+
+    .error-message {
+        font-size: 14px;
+        color: #b91c1c;
+        line-height: 1.6;
+    }
+
+    /* ============== 响应式调整 ============== */
+    @media (max-width: 768px) {
+        main {
+            padding: 16px 16px 40px;
+        }
+
+        .page-title {
+            font-size: 26px;
+        }
+
+        .main-card {
+            padding: 24px 20px;
+        }
+
+        .job-select-form {
+            grid-template-columns: 1fr;
+        }
+
+        .job-recommendation-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .job-recommendation-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-actions {
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .timeline {
+            padding-left: 32px;
+        }
+
+        .timeline::before {
+            left: 12px;
+        }
+
+        .timeline-dot {
+            left: -30px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .phase-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .graph-legend {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 22px;
+        }
+
+        .main-card {
+            padding: 20px 16px;
+        }
+
+        .job-card {
+            padding: 16px;
+        }
+
+        .timeline-card,
+        .graph-card {
+            padding: 20px 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <div class="step-indicator">
+            <div class="step-number">4</div>
+            <span>技能成长路径规划</span>
+        </div>
+
+        <h1 class="page-title">技能成长路径图谱</h1>
+        <p class="page-subtitle">
+            基于知识图谱的智能路径规划，为你设计从当前技能到目标岗位的最佳学习路径。
+        </p>
+    </div>
+
+    <!-- 主内容卡片 -->
+    <div class="main-card">
+        <!-- 目标岗位选择 -->
+        <div class="job-select-section">
+            <div class="section-header">
+                <div class="section-icon">🎯</div>
+                <div>
+                    <div class="section-title">选择目标岗位</div>
+                    <div class="section-subtitle">选择你想要达成的职业目标</div>
+                </div>
+            </div>
+
+            <div class="job-select-card">
+                <form method="POST" class="job-select-form">
+                    <div class="form-group">
+                        <label class="form-label">目标岗位</label>
+                        <select name="target_job_id" class="form-select" required>
+                            <option value="">请选择你想要达成的目标岗位...</option>
+                            {% for job in all_jobs %}
+                                <option value="{{ job.id }}"
+                                        {% if job.id == selected_job_id %}selected{% endif %}>
+                                    {{ job.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span class="icon">🚀</span>
+                        生成成长路径
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 错误提示 -->
+        {% if skill_path and 'error' in skill_path %}
+            <div class="error-card">
+                <div class="error-icon">⚠️</div>
+                <div class="error-content">
+                    <div class="error-title">路径生成失败</div>
+                    <div class="error-message">{{ skill_path.error }}</div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- 有数据时的完整显示 -->
+        {% if selected_job_id and skill_path and 'error' not in skill_path %}
+            <!-- 岗位推荐 -->
+            <div class="job-recommendation-section">
+                <div class="job-recommendation-header">
+                    <div class="section-header">
+                        <div class="section-icon">💼</div>
+                        <div>
+                            <div class="section-title">基于当前技能的岗位推荐</div>
+                            <div class="section-subtitle">与你技能匹配度较高的岗位</div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        {% if job_reco %}
+                            <a href="{{ url_for('match_diag_page') }}?job_id={{ job_reco[0].job_id }}"
+                               class="btn btn-secondary">
+                                <span class="icon">📊</span>
+                                查看匹配诊断
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if job_reco %}
+                    <div class="job-recommendation-grid">
+                        {% for job in job_reco %}
+                            <div class="job-card">
+                                <div class="job-card-header">
+                                    <div class="job-name">{{ job.job_name }}</div>
+                                    <div class="match-badge">{{ job.match_rate }}% 匹配</div>
+                                </div>
+
+                                <div class="job-skills">
+                                    已匹配技能：
+                                    {% if job.overlap_skills %}
+                                        {{ job.overlap_skills[:3]|join('、') }}
+                                        {% if job.overlap_skills|length > 3 %}...{% endif %}
+                                    {% else %}
+                                        暂无匹配技能
+                                    {% endif %}
+                                </div>
+
+                                <div class="job-meta">
+                                    <div class="skill-count">
+                                        <span class="icon">🔗</span>
+                                        <span>{{ job.overlap_skills|length }} 项技能</span>
+                                    </div>
+                                    <div>点击查看详情 →</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 40px 20px;">
+                        <div class="empty-state-icon">🔍</div>
+                        <div class="empty-state-title">暂无推荐岗位</div>
+                        <div class="empty-state-description">
+                            建议先补充更多技能，或尝试其他目标岗位。
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 路径分析 -->
+            <div class="path-analysis-section">
+                <div class="section-header">
+                    <div class="section-icon">🗺️</div>
+                    <div>
+                        <div class="section-title">技能成长路径分析</div>
+                        <div class="section-subtitle">通往目标岗位的详细学习路线</div>
+                    </div>
+                </div>
+
+                <div class="path-analysis-layout">
+                    <!-- 左侧：时间线 -->
+                    <div class="timeline-card">
+                        <div class="timeline-header">
+                            <div class="timeline-icon">📅</div>
+                            <div>
+                                <div class="timeline-title">分阶段学习路线</div>
+                                <div class="timeline-target">通往「{{ skill_path.target_job_name }}」</div>
+                            </div>
+                        </div>
+
+                        <div class="timeline">
+                            <!-- 阶段1 -->
+                            <div class="timeline-phase">
+                                <div class="timeline-dot" style="background: var(--primary);"></div>
+
+                                <div class="phase-header">
+                                    <div class="phase-title phase-1">Step 1：基础能力构建</div>
+                                    <div class="phase-meta">
+                                        <span class="phase-time">{{ skill_path.phase1.time_range }}</span>
+                                        <span class="phase-priority high">最高优先级</span>
+                                    </div>
+                                </div>
+
+                                <div class="phase-objective">
+                                    学习目标：掌握岗位必备基础技能，满足入门级工作要求。
+                                </div>
+
+                                <div class="phase-skills">
+                                    <div class="phase-skills-label">需掌握的核心技能：</div>
+                                    <div class="phase-skills-list">
+                                        {% for skill in skill_path.phase1.skills %}
+                                            <span class="phase-skill-tag phase-1">{{ skill }}</span>
+                                        {% else %}
+                                            <span style="color: var(--text-tertiary); font-size: 14px;">暂无技能</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="phase-advice">
+                                    <strong>学习建议：</strong>{{ skill_path.phase1.action }}
+                                </div>
+                            </div>
+
+                            <!-- 阶段2 -->
+                            <div class="timeline-phase">
+                                <div class="timeline-dot" style="background: var(--warning);"></div>
+
+                                <div class="phase-header">
+                                    <div class="phase-title phase-2">Step 2：进阶能力提升</div>
+                                    <div class="phase-meta">
+                                        <span class="phase-time">{{ skill_path.phase2.time_range }}</span>
+                                        <span class="phase-priority medium">中等优先级</span>
+                                    </div>
+                                </div>
+
+                                <div class="phase-objective">
+                                    学习目标：掌握进阶技能，具备独立完成中型项目的能力。
+                                </div>
+
+                                <div class="phase-skills">
+                                    <div class="phase-skills-label">需掌握的进阶技能：</div>
+                                    <div class="phase-skills-list">
+                                        {% for skill in skill_path.phase2.skills %}
+                                            <span class="phase-skill-tag phase-2">{{ skill }}</span>
+                                        {% else %}
+                                            <span style="color: var(--text-tertiary); font-size: 14px;">暂无技能</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="phase-advice">
+                                    <strong>学习建议：</strong>{{ skill_path.phase2.action }}
+                                </div>
+                            </div>
+
+                            <!-- 阶段3 -->
+                            <div class="timeline-phase">
+                                <div class="timeline-dot" style="background: var(--error);"></div>
+
+                                <div class="phase-header">
+                                    <div class="phase-title phase-3">Step 3：核心能力突破</div>
+                                    <div class="phase-meta">
+                                        <span class="phase-time">{{ skill_path.phase3.time_range }}</span>
+                                        <span class="phase-priority high">高优先级</span>
+                                    </div>
+                                </div>
+
+                                <div class="phase-objective">
+                                    学习目标：掌握核心高级技能，达到岗位资深要求。
+                                </div>
+
+                                <div class="phase-skills">
+                                    <div class="phase-skills-label">需掌握的高级技能：</div>
+                                    <div class="phase-skills-list">
+                                        {% for skill in skill_path.phase3.skills %}
+                                            <span class="phase-skill-tag phase-3">{{ skill }}</span>
+                                        {% else %}
+                                            <span style="color: var(--text-tertiary); font-size: 14px;">暂无技能</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="phase-advice">
+                                    <strong>学习建议：</strong>{{ skill_path.phase3.action }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：图谱 -->
+                    <div class="graph-card">
+                        <div class="graph-header">
+                            <div class="graph-icon">🌐</div>
+                            <div>
+                                <div class="graph-title">技能成长图谱</div>
+                                <div class="graph-subtitle">可视化技能依赖与成长路径</div>
+                            </div>
+                        </div>
+
+                        <!-- 图例 -->
+                        <div class="graph-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot current"></div>
+                                <span>已掌握技能</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot phase-1"></div>
+                                <span>阶段 1（基础）</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot phase-2"></div>
+                                <span>阶段 2（进阶）</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot phase-3"></div>
+                                <span>阶段 3（核心）</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot target"></div>
+                                <span>目标岗位</span>
+                            </div>
+                        </div>
+
+                        <!-- 图谱容器 -->
+                        <div class="graph-container">
+                            <div id="skillChart"></div>
+                            <div class="graph-tooltip">
+                                <strong>操作提示：</strong><br>
+                                • 拖拽节点调整布局<br>
+                                • 点击节点查看详情<br>
+                                • 滚轮缩放图谱
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- 空状态显示 -->
+            <div class="job-recommendation-section">
+                <div class="section-header">
+                    <div class="section-icon">💼</div>
+                    <div>
+                        <div class="section-title">基于当前技能的岗位推荐</div>
+                        <div class="section-subtitle">与你技能匹配度较高的岗位</div>
+                    </div>
+                </div>
+
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-title">选择目标岗位开始分析</div>
+                    <div class="empty-state-description">
+                        选择你想要达成的目标岗位后，系统将为你推荐<br>
+                        匹配度较高的其他岗位，并规划最佳成长路径。
+                    </div>
+                </div>
+            </div>
+
+            <div class="path-analysis-section">
+                <div class="section-header">
+                    <div class="section-icon">🗺️</div>
+                    <div>
+                        <div class="section-title">技能成长路径分析</div>
+                        <div class="section-subtitle">通往目标岗位的详细学习路线</div>
+                    </div>
+                </div>
+
+                <div class="path-analysis-layout">
+                    <!-- 左侧：时间线占位 -->
+                    <div class="timeline-card">
+                        <div class="timeline-header">
+                            <div class="timeline-icon">📅</div>
+                            <div>
+                                <div class="timeline-title">分阶段学习路线</div>
+                                <div class="timeline-target">通往目标岗位</div>
+                            </div>
+                        </div>
+
+                        <div class="empty-state" style="padding: 40px 20px;">
+                            <div class="empty-state-icon">📚</div>
+                            <div class="empty-state-description">
+                                选择目标岗位后，将展示分阶段的<br>
+                                技能学习路线图
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：图谱占位 -->
+                    <div class="graph-card">
+                        <div class="graph-header">
+                            <div class="graph-icon">🌐</div>
+                            <div>
+                                <div class="graph-title">技能成长图谱</div>
+                                <div class="graph-subtitle">可视化技能依赖与成长路径</div>
+                            </div>
+                        </div>
+
+                        <div class="empty-state" style="flex: 1; padding: 40px 20px;">
+                            <div class="empty-state-icon">📊</div>
+                            <div class="empty-state-description">
+                                选择目标岗位后，将展示你的技能<br>
+                                成长关系图谱
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<!-- 使用可靠的CDN -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+// 核心修复：根据后端传过来的数字category（0-4）来设置节点颜色和样式
+{% if selected_job_id and skill_path and 'error' not in skill_path and skill_path.graph_data %}
+document.addEventListener('DOMContentLoaded', function() {
+    const chartDom = document.getElementById('skillChart');
+    if (!chartDom) return;
+
+    // 检查ECharts是否加载成功
+    if (typeof echarts === 'undefined') {
+        chartDom.innerHTML = '<div style="padding:40px;text-align:center;color:#666;">图表库加载失败，请刷新页面重试</div>';
+        return;
+    }
+
+    // 初始化图表
+    const myChart = echarts.init(chartDom);
+
+    // 1. 获取后端数据
+    const nodes = {{ skill_path.graph_data.nodes|tojson }};
+    const links = {{ skill_path.graph_data.links|tojson }};
+
+    // 2. 定义颜色映射（关键：根据数字索引 0-4）
+    const colorByCategoryIndex = [
+        '#10b981', // 0: 已掌握技能 (绿色)
+        '#2563eb', // 1: 阶段1 (蓝色)
+        '#f59e0b', // 2: 阶段2 (橙色)
+        '#ef4444', // 3: 阶段3 (红色)
+        '#8b5cf6'  // 4: 目标岗位 (紫色)
+    ];
+
+    const categoryNames = [
+        '已掌握技能',
+        '阶段 1（基础）',
+        '阶段 2（进阶）',
+        '阶段 3（核心）',
+        '目标岗位'
+    ];
+
+    // 3. 转换节点数据：确保每个节点都有正确的颜色和大小
+    const echartsNodes = nodes.map(node => {
+        // 关键：node.category 应该是数字 0-4
+        const categoryIndex = node.category !== undefined ? node.category : 0;
+        const color = colorByCategoryIndex[categoryIndex] || '#94a3b8';
+        const name = categoryNames[categoryIndex] || '未知';
+
+        // 根据节点类型设置不同大小
+        let symbolSize = 30;
+        if (categoryIndex === 4) { // 目标岗位
+            symbolSize = 45;
+        } else if (categoryIndex === 0) { // 已掌握技能
+            symbolSize = 28;
+        } else if (categoryIndex >= 1 && categoryIndex <= 3) { // 阶段1-3
+            symbolSize = 32;
+        }
+
+        // 确保节点有唯一的id
+        const nodeId = node.id || node.name || ('node_' + Math.random().toString(36).substr(2, 9));
+
+        return {
+            id: nodeId,
+            name: node.name,
+            category: categoryIndex, // 保留数字category
+            symbolSize: symbolSize,
+            itemStyle: {
+                color: color,
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                shadowBlur: 5,
+                shadowColor: 'rgba(0,0,0,0.1)'
+            },
+            label: {
+                show: true,
+                position: 'right',
+                distance: 10,
+                fontSize: categoryIndex === 4 ? 14 : 12,
+                fontWeight: categoryIndex === 4 ? 'bold' : 'normal',
+                color: '#334155',
+                formatter: function(params) {
+                    // 标签显示名称，过长则截断
+                    return params.name.length > 10 ? params.name.substring(0, 10) + '...' : params.name;
+                }
+            },
+            tooltip: {
+                formatter: function(params) {
+                    const catName = categoryNames[params.data.category] || '未知';
+                    return `<div>
+                        <strong>${params.data.name}</strong><br/>
+                        <span style="color:${color}">●</span> ${catName}
+                    </div>`;
+                }
+            }
+        };
+    });
+
+    // 4. 转换连线数据
+    const echartsLinks = links.map(link => {
+        // 确保source和target都是字符串
+        const source = link.source || '';
+        const target = link.target || '';
+
+        return {
+            source: source,
+            target: target,
+            lineStyle: {
+                color: '#cbd5e1', // 连线颜色
+                width: link.lineStyle && link.lineStyle.width ? link.lineStyle.width : 2,
+                type: 'solid',
+                opacity: 0.8,
+                curveness: 0.2
+            }
+        };
+    });
+
+    // 5. 构建categories数组（ECharts需要）
+    const categories = categoryNames.map((name, index) => ({
+        name: name,
+        itemStyle: {
+            color: colorByCategoryIndex[index]
+        }
+    }));
+
+    // 6. ECharts配置
+    const option = {
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'item',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            padding: [12, 16],
+            textStyle: {
+                color: '#334155',
+                fontSize: 13
+            },
+            formatter: function(params) {
+                if (params.dataType === 'node') {
+                    const node = params.data;
+                    const catName = categoryNames[node.category] || '未知';
+                    const color = colorByCategoryIndex[node.category] || '#94a3b8';
+
+                    return `<div style="min-width: 180px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 12px; height: 12px; border-radius: 50%; background: ${color};"></div>
+                            <div style="font-weight: 600; color: #1e293b;">${node.name}</div>
+                        </div>
+                        <div style="font-size: 12px; color: #64748b; padding: 4px 8px; background: #f8fafc; border-radius: 4px;">
+                            ${catName}
+                        </div>
+                    </div>`;
+                }
+                return '';
+            }
+        },
+        legend: {
+            show: false // 使用我们自定义的图例
+        },
+        series: [{
+            type: 'graph',
+            layout: 'force',
+            force: {
+                repulsion: 250,
+                edgeLength: 120,
+                gravity: 0.1,
+                layoutAnimation: true,
+                friction: 0.6
+            },
+            roam: true,
+            draggable: true,
+            zoom: 1,
+            scaleLimit: {
+                min: 0.8,
+                max: 3
+            },
+            data: echartsNodes,
+            links: echartsLinks,
+            categories: categories,
+            focusNodeAdjacency: true,
+            label: {
+                show: true,
+                position: 'right',
+                distance: 10,
+                fontSize: 12,
+                color: '#334155'
+            },
+            edgeLabel: {
+                show: false
+            },
+            lineStyle: {
+                color: '#cbd5e1',
+                width: 2,
+                opacity: 0.8,
+                curveness: 0.2
+            },
+            emphasis: {
+                focus: 'adjacency',
+                scale: true,
+                label: {
+                    show: true,
+                    fontWeight: 'bold',
+                    fontSize: 14
+                },
+                itemStyle: {
+                    shadowBlur: 15,
+                    shadowColor: 'rgba(37, 99, 235, 0.3)'
+                },
+                lineStyle: {
+                    width: 3,
+                    color: '#94a3b8'
+                }
+            }
+        }]
+    };
+
+    // 7. 应用配置
+    myChart.setOption(option);
+
+    // 8. 响应窗口大小变化
+    window.addEventListener('resize', function() {
+        myChart.resize();
+    });
+
+    // 9. 可选：初始视图调整
+    myChart.on('finished', function() {
+        // 可以在这里添加一些初始的视图调整
+        console.log('技能成长图谱渲染完成！');
+    });
+
+    // 图表点击事件
+    myChart.on('click', function(params) {
+        if (params.dataType === 'node') {
+            console.log('点击节点:', params.data);
+        }
+    });
+});
+{% else %}
+// 没有数据时的处理
+document.addEventListener('DOMContentLoaded', function() {
+    const chartDom = document.getElementById('skillChart');
+    if (chartDom) {
+        chartDom.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;">
+                <div style="font-size:64px;margin-bottom:20px;opacity:0.5;">📊</div>
+                <div style="font-size:16px;font-weight:500;color:#64748b;margin-bottom:8px;">选择目标岗位后显示图谱</div>
+                <div style="font-size:14px;max-width:300px;line-height:1.5;">选择目标岗位后，系统将可视化展示技能成长路径</div>
+            </div>
+        `;
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

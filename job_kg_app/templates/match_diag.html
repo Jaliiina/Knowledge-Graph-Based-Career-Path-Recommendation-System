@@ -1,0 +1,1420 @@
+{% extends "base.html" %}
+
+{% block title %}岗位匹配与技能诊断报告 · AI 求职知识图谱助手{% endblock %}
+
+{% block head_extra %}
+<style>
+    :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --primary-light: #e0f2fe;
+        --secondary: #64748b;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --error: #ef4444;
+        --error-light: #fef2f2;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --border: #e2e8f0;
+        --border-light: #f1f5f9;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-tertiary: #94a3b8;
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+        --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background-color: var(--background);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 20px 60px;
+    }
+
+    /* ============== 页面头部 ============== */
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .step-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
+    .step-indicator .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        font-size: 12px;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 800px;
+    }
+
+    /* ============== 主内容卡片 ============== */
+    .main-card {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        padding: 32px;
+        margin-top: 16px;
+    }
+
+    /* ============== 匹配分数卡片 ============== */
+    .match-score-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+        border: 1px solid #94d2ff;
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .match-score-card::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 100%);
+        border-radius: 50%;
+    }
+
+    .match-score-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .match-score-display {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .score-circle {
+        position: relative;
+        width: 100px;
+        height: 100px;
+    }
+
+    .score-circle svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .score-circle circle {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+    }
+
+    .score-circle-bg {
+        stroke: #e2e8f0;
+    }
+
+    .score-circle-fill {
+        stroke: var(--primary);
+        stroke-dasharray: 283;
+        stroke-dashoffset: calc(283 - (283 * {{ match_result.match_score if match_result and not match_result.error else 0 }}) / 100);
+        transition: stroke-dashoffset 1s ease;
+    }
+
+    .score-circle-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .score-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .score-label {
+        font-size: 14px;
+        color: var(--text-tertiary);
+        margin-top: 4px;
+    }
+
+    .match-level-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        background: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .match-level-badge.excellent {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .match-level-badge.good {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .match-level-badge.fair {
+        background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+        color: #c2410c;
+        border: 1px solid #fdba74;
+    }
+
+    .match-level-badge.poor {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    .match-summary {
+        font-size: 16px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 20px;
+        padding-right: 20px;
+    }
+
+    .match-summary emoji {
+        font-size: 18px;
+        margin-right: 6px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: var(--text-tertiary);
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    /* ============== 技能展示区域 ============== */
+    .skills-section {
+        margin-bottom: 28px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .section-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .skills-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+    }
+
+    .skills-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--text-tertiary);
+    }
+
+    .skills-empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
+    }
+
+    .skills-empty-state .text {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .skills-empty-state .link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .skills-empty-state .link:hover {
+        text-decoration: underline;
+    }
+
+    .skills-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-height: 24px;
+    }
+
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+        color: #1e40af;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid rgba(147, 197, 253, 0.5);
+        transition: var(--transition);
+    }
+
+    .skill-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15);
+        border-color: #93c5fd;
+    }
+
+    /* ============== 岗位选择区域 ============== */
+    .job-select-section {
+        margin-bottom: 28px;
+    }
+
+    .job-select-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+    }
+
+    .job-select-form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .form-select {
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        color: var(--text-primary);
+        background: white;
+        transition: var(--transition);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-select:disabled {
+        background-color: #f8fafc;
+        color: var(--text-tertiary);
+        cursor: not-allowed;
+    }
+
+    .form-select option {
+        padding: 8px;
+    }
+
+    /* ============== 匹配详情区域 ============== */
+    .match-details-section {
+        margin-bottom: 28px;
+    }
+
+    .match-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .match-details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .match-detail-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        height: 100%;
+    }
+
+    .match-detail-card.owned {
+        border-top: 4px solid var(--success);
+    }
+
+    .match-detail-card.missing {
+        border-top: 4px solid var(--warning);
+    }
+
+    .match-detail-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .match-detail-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .match-detail-icon.owned {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .match-detail-icon.missing {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .match-detail-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .match-detail-count {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-left: 8px;
+    }
+
+    .match-detail-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-height: 180px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .match-detail-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .match-detail-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .match-detail-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    .match-detail-item {
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .match-detail-item.owned {
+        background: rgba(16, 185, 129, 0.1);
+        color: #065f46;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .match-detail-item.missing {
+        background: rgba(245, 158, 11, 0.1);
+        color: #92400e;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* ============== 图表和建议区域 ============== */
+    .analysis-section {
+        margin-bottom: 28px;
+    }
+
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .analysis-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .analysis-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .analysis-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .analysis-card-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .analysis-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .analysis-card-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    /* 雷达图容器 */
+    .radar-container {
+        flex: 1;
+        min-height: 350px;
+        position: relative;
+    }
+
+    #radarChart {
+        width: 100%;
+        height: 100%;
+    }
+
+    .radar-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-tertiary);
+        text-align: center;
+        padding: 20px;
+    }
+
+    .radar-empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
+    }
+
+    .radar-empty-state .text {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    /* AI建议容器 */
+    .ai-suggestion-container {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .ai-suggestion-container::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .ai-suggestion-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .ai-suggestion-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    .ai-suggestion-content {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+
+    .ai-suggestion-content p {
+        margin-bottom: 16px;
+    }
+
+    .ai-suggestion-content ul, .ai-suggestion-content ol {
+        margin-left: 20px;
+        margin-bottom: 16px;
+    }
+
+    .ai-suggestion-content li {
+        margin-bottom: 8px;
+    }
+
+    .ai-suggestion-content strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .ai-suggestion-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-tertiary);
+        text-align: center;
+        padding: 20px;
+    }
+
+    .ai-suggestion-empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
+    }
+
+    .ai-suggestion-empty-state .text {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    /* ============== 错误状态 ============== */
+    .error-card {
+        background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+        border: 1px solid #fecaca;
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .error-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: white;
+        color: var(--error);
+        border-radius: 10px;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .error-message {
+        font-size: 14px;
+        color: #b91c1c;
+        line-height: 1.6;
+    }
+
+    /* ============== 响应式调整 ============== */
+    @media (max-width: 768px) {
+        main {
+            padding: 16px 16px 40px;
+        }
+
+        .page-title {
+            font-size: 26px;
+        }
+
+        .main-card {
+            padding: 24px 20px;
+        }
+
+        .match-score-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .match-score-display {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .job-select-form {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 22px;
+        }
+
+        .main-card {
+            padding: 20px 16px;
+        }
+
+        .match-score-card {
+            padding: 20px;
+        }
+
+        .score-circle {
+            width: 80px;
+            height: 80px;
+        }
+
+        .score-value {
+            font-size: 24px;
+        }
+
+        .analysis-card {
+            padding: 20px 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <div class="step-indicator">
+            <div class="step-number">3</div>
+            <span>岗位匹配与技能诊断</span>
+        </div>
+
+        <h1 class="page-title">职业匹配诊断报告</h1>
+        <p class="page-subtitle">
+            基于知识图谱的智能匹配分析，为你生成个性化的职业提升方案与技能发展路径。
+        </p>
+    </div>
+
+    <!-- 主内容卡片 -->
+    <div class="main-card">
+        <!-- 匹配分数卡片 -->
+        <div class="match-score-card">
+            <div class="match-score-header">
+                <div class="match-score-display">
+                    <div class="score-circle">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="score-circle-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="score-circle-fill" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <div class="score-circle-text">
+                            <div class="score-value">
+                                {% if match_result and not match_result.error %}
+                                    {{ match_result.match_score }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </div>
+                            <div class="score-label">匹配得分</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-tertiary); margin-bottom: 8px;">匹配等级</div>
+                        {% if match_result and not match_result.error %}
+                            <div class="match-level-badge {{ 'excellent' if match_result.match_level == '优秀匹配' else 'good' if match_result.match_level == '良好匹配' else 'fair' if match_result.match_level == '一般匹配' else 'poor' }}">
+                                {{ match_result.match_level }}
+                            </div>
+                        {% else %}
+                            <div class="match-level-badge" style="background: #f1f5f9; color: var(--text-tertiary); border: 1px solid #e2e8f0;">
+                                未评估
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if match_result and not match_result.error %}
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="exportReport()">
+                            <span class="icon">📋</span>
+                            导出诊断报告
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if match_result and not match_result.error %}
+                <div class="match-summary">
+                    {% if match_result.competition_summary %}
+                        <emoji>📊</emoji> {{ match_result.competition_summary }}
+                    {% else %}
+                        {% if match_result.match_score >= 80 %}
+                            <emoji>✅</emoji> 恭喜！你已具备该岗位的核心技能，竞争力处于上游水平，建议直接投递简历！
+                        {% elif match_result.match_score >= 60 %}
+                            <emoji>⚠️</emoji> 你已具备该岗位约{{ match_result.match_score }}%的核心技能，短期补充{{ [2, match_result.missing_skills|length]|min }}项技能可大幅提升竞争力。
+                        {% elif match_result.match_score >= 40 %}
+                            <emoji>📚</emoji> 你当前匹配度{{ match_result.match_score }}%，建议优先学习{{ match_result.missing_skills[:2]|join('、') if match_result.missing_skills and match_result.missing_skills|length > 0 else '核心技能' }}等核心技能。
+                        {% else %}
+                            <emoji>🔧</emoji> 你当前技能匹配度较低，需系统学习{{ match_result.missing_skills[:3]|join('、') if match_result.missing_skills and match_result.missing_skills|length > 0 else '关键技能' }}等关键技能。
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="match-summary">
+                    <emoji>🔍</emoji> 选择目标岗位并生成报告后，将显示详细的匹配分析和提升建议。
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 错误提示 -->
+        {% if match_result and match_result.error %}
+            <div class="error-card">
+                <div class="error-icon">⚠️</div>
+                <div class="error-message">{{ match_result.error }}</div>
+            </div>
+        {% endif %}
+
+        <!-- 技能展示区域 -->
+        <div class="skills-section">
+            <div class="section-header">
+                <div class="section-icon">👤</div>
+                <div>
+                    <div class="section-title">个人技能画像</div>
+                    <div class="section-subtitle">基于你的简历解析结果</div>
+                </div>
+            </div>
+
+            <div class="skills-card">
+                {% if user_existing_skills and user_existing_skills|length > 0 %}
+                    <div class="skills-tags">
+                        {% for skill in user_existing_skills %}
+                            {% if skill %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="skills-empty-state">
+                        <div class="icon">📄</div>
+                        <div class="text">尚未生成个人技能画像</div>
+                        <a href="{{ url_for('resume_kg_page') }}" class="link">前往简历解析页面 →</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 岗位选择区域 -->
+        <div class="job-select-section">
+            <div class="section-header">
+                <div class="section-icon">🎯</div>
+                <div>
+                    <div class="section-title">选择目标岗位</div>
+                    <div class="section-subtitle">选择要匹配分析的目标岗位</div>
+                </div>
+            </div>
+
+            <div class="job-select-card">
+                <form method="POST" action="{{ url_for('match_diag_page') }}"
+                      onsubmit="document.getElementById('submitBtn').disabled=true;document.getElementById('submitBtn').innerHTML='<span class=\'icon\'>⏳</span> 计算中...';">
+                    <div class="job-select-form">
+                        <div class="form-group">
+                            <label class="form-label">目标岗位</label>
+                            <select name="target_job_id" class="form-select" required
+                                    {% if not user_existing_skills or user_existing_skills|length == 0 %}disabled{% endif %}>
+                                <option value="">请选择一个岗位...</option>
+                                {% for job in all_jobs %}
+                                    <option value="{{ job.id }}"
+                                            {% if job.id == selected_job_id %}selected{% endif %}>
+                                        {{ job.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button id="submitBtn" type="submit" class="btn btn-primary"
+                                {% if not user_existing_skills or user_existing_skills|length == 0 %}disabled{% endif %}>
+                            <span class="icon">🔍</span>
+                            生成诊断报告
+                        </button>
+                    </div>
+
+                    {% if not user_existing_skills or user_existing_skills|length == 0 %}
+                        <div style="margin-top: 12px; font-size: 13px; color: var(--text-tertiary);">
+                            ⚠️ 请先前往<a href="{{ url_for('resume_kg_page') }}" style="color: var(--primary);">简历解析页面</a>生成个人技能画像
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- 匹配详情区域 -->
+        {% if match_result and not match_result.error %}
+            <div class="match-details-section">
+                <div class="section-header">
+                    <div class="section-icon">📊</div>
+                    <div>
+                        <div class="section-title">匹配详情拆解</div>
+                        <div class="section-subtitle">技能匹配的详细分析</div>
+                    </div>
+                </div>
+
+                <div class="match-details-grid">
+                    <!-- 已具备技能 -->
+                    <div class="match-detail-card owned">
+                        <div class="match-detail-header">
+                            <div class="match-detail-icon owned">✅</div>
+                            <div class="match-detail-title">
+                                已具备核心技能
+                                <span class="match-detail-count">({{ match_result.owned_skills|length if match_result.owned_skills else 0 }})</span>
+                            </div>
+                        </div>
+
+                        <div class="match-detail-list">
+                            {% if match_result.owned_skills and match_result.owned_skills|length > 0 %}
+                                {% for skill in match_result.owned_skills %}
+                                    {% if skill %}
+                                        <div class="match-detail-item owned">{{ skill }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div style="color: var(--text-tertiary); font-size: 14px; padding: 8px;">
+                                    暂无已具备的核心技能
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 待补充技能 -->
+                    <div class="match-detail-card missing">
+                        <div class="match-detail-header">
+                            <div class="match-detail-icon missing">⚠️</div>
+                            <div class="match-detail-title">
+                                待补充技能
+                                <span class="match-detail-count">({{ match_result.missing_skills|length if match_result.missing_skills else 0 }})</span>
+                            </div>
+                        </div>
+
+                        <div class="match-detail-list">
+                            {% if match_result.missing_skills and match_result.missing_skills|length > 0 %}
+                                {% for skill in match_result.missing_skills %}
+                                    {% if skill %}
+                                        <div class="match-detail-item missing">{{ skill }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div style="color: var(--text-tertiary); font-size: 14px; padding: 8px;">
+                                    恭喜！已掌握所有核心技能
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- 图表和建议区域 -->
+        <div class="analysis-section">
+            <div class="section-header">
+                <div class="section-icon">📈</div>
+                <div>
+                    <div class="section-title">深度分析与建议</div>
+                    <div class="section-subtitle">可视化分析与AI个性化建议</div>
+                </div>
+            </div>
+
+            <div class="analysis-grid">
+                <!-- 雷达图卡片 -->
+                <div class="analysis-card">
+                    <div class="analysis-card-header">
+                        <div class="analysis-card-icon">📊</div>
+                        <div>
+                            <div class="analysis-card-title">技能匹配雷达图</div>
+                            <div class="analysis-card-subtitle">岗位需求与个人掌握的对比分析</div>
+                        </div>
+                    </div>
+
+                    <div class="radar-container">
+                        {% if radar_data and radar_data.dimensions and radar_data.dimensions|length > 0 %}
+                            <div id="radarChart"></div>
+                        {% else %}
+                            <div class="radar-empty-state">
+                                <div class="icon">📈</div>
+                                <div class="text">
+                                    {% if match_result and not match_result.error %}
+                                        技能匹配数据不足，<br>无法生成雷达图
+                                    {% else %}
+                                        生成报告后，将展示你的技能<br>
+                                        与岗位需求的匹配雷达图
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- AI建议卡片 -->
+                <div class="analysis-card">
+                    <div class="analysis-card-header">
+                        <div class="analysis-card-icon">🤖</div>
+                        <div>
+                            <div class="analysis-card-title">AI职业提升建议</div>
+                            <div class="analysis-card-subtitle">基于匹配结果的个性化建议</div>
+                        </div>
+                    </div>
+
+                    <div class="ai-suggestion-container">
+                        {% if match_result and not match_result.error %}
+                            {% if llm_report %}
+                                <div class="ai-suggestion-content">
+                                    {{ llm_report|safe }}
+                                </div>
+                            {% else %}
+                                <div class="ai-suggestion-empty-state">
+                                    <div class="icon">⏳</div>
+                                    <div class="text">
+                                        AI正在生成个性化建议...<br>
+                                        请稍等片刻
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="ai-suggestion-empty-state">
+                                <div class="icon">🤖</div>
+                                <div class="text">
+                                    生成报告后，AI将为你提供<br>
+                                    个性化的技能提升建议
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<script>
+// 导出诊断报告
+function exportReport() {
+    {% if match_result and not match_result.error %}
+    // 安全地获取技能列表
+    function safeGetSkills(skills) {
+        if (!skills) return [];
+        return skills.filter(skill => skill && skill.trim());
+    }
+
+    // 定义总结文本
+    let summaryText = "";
+    const matchScore = {{ match_result.match_score }};
+    const ownedSkillsCount = {{ match_result.owned_skills|length if match_result.owned_skills else 0 }};
+    const missingSkillsCount = {{ match_result.missing_skills|length if match_result.missing_skills else 0 }};
+
+    if (matchScore >= 80) {
+        summaryText = "✅ 恭喜！你已具备该岗位的核心技能，竞争力处于上游水平，建议直接投递简历！";
+    } else if (matchScore >= 60) {
+        summaryText = "⚠️ 你已具备该岗位约" + matchScore + "%的核心技能，短期补充" + Math.min(2, missingSkillsCount) + "项技能可大幅提升竞争力。";
+    } else {
+        summaryText = "🔧 你当前技能匹配度较低，需系统学习核心技能以提升竞争力。";
+    }
+
+    // 定义技能文本
+    const ownedSkillsText = ownedSkillsCount > 0 ? "{{ match_result.owned_skills|join('、')|safe if match_result.owned_skills else '无' }}" : "无";
+    const missingSkillsText = missingSkillsCount > 0 ? "{{ match_result.missing_skills|join('、')|safe if match_result.missing_skills else '无' }}" : "无";
+    const llmReportText = `{% if llm_report %}{{ llm_report|replace('<br>', '\n')|replace('"', '\\"')|safe }}{% else %}暂无AI分析报告{% endif %}`;
+    const competitionSummary = "{{ match_result.competition_summary|default('')|replace('\n', ' ')|replace('"', '\\"') }}";
+
+    // 拼接报告内容
+    const reportContent = `# 岗位匹配诊断报告
+## 📊 基本信息
+- **目标岗位**：{{ match_result.job_name }}
+- **匹配得分**：${matchScore}%
+- **匹配等级**：{{ match_result.match_level }}
+- **生成时间**：${new Date().toLocaleString('zh-CN')}
+
+## 🎯 核心总结
+${competitionSummary || summaryText}
+
+## 📋 技能匹配分析
+### ✅ 已具备核心技能（${ownedSkillsCount}项）
+${ownedSkillsText}
+
+### ⚠️ 待补充技能（${missingSkillsCount}项）
+${missingSkillsText}
+
+## 🧠 AI 专属提升建议
+${llmReportText}
+
+---
+*报告生成：AI 求职知识图谱助手*
+*数据来源：基于知识图谱的智能匹配分析*`;
+
+    // 复制到剪贴板
+    navigator.clipboard.writeText(reportContent).then(() => {
+        showNotification('✅ 诊断报告已成功复制到剪贴板！\n可粘贴到Notion/Word/微信等平台查看', 'success');
+    }).catch(err => {
+        console.error('复制失败:', err);
+        showNotification('❌ 复制失败，请手动复制报告内容', 'error');
+        prompt('请手动复制以下报告内容：', reportContent);
+    });
+    {% else %}
+    showNotification('⚠️ 请先生成有效的诊断报告再导出！', 'warning');
+    {% endif %}
+}
+
+// 分享报告（模拟功能）
+function shareReport() {
+    showNotification('📤 分享功能即将上线，请先导出报告', 'info');
+}
+
+// 显示通知
+function showNotification(message, type = 'info') {
+    // 创建通知元素
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#2563eb'};
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+        white-space: pre-line;
+    `;
+
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // 3秒后移除
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+
+    // 添加动画关键帧
+    if (!document.getElementById('notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// 雷达图渲染
+document.addEventListener('DOMContentLoaded', function() {
+    {% if radar_data and radar_data.dimensions and radar_data.dimensions|length > 0 %}
+    try {
+        const radarChartDom = document.getElementById('radarChart');
+        if (!radarChartDom) return;
+
+        if (typeof echarts === 'undefined') {
+            radarChartDom.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;">ECharts 加载失败，请刷新页面</div>';
+            return;
+        }
+
+        const radarChart = echarts.init(radarChartDom);
+
+        const dimensions = {{ radar_data.dimensions|tojson|safe }} || [];
+        const jobWeights = {{ radar_data.job_weights|tojson|safe }} || [];
+        const userWeights = {{ radar_data.user_weights|tojson|safe }} || [];
+
+        // 验证数据
+        if (!dimensions || dimensions.length === 0 || !jobWeights || !userWeights) {
+            radarChartDom.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;"><div style="font-size:48px;margin-bottom:16px;">📊</div><div style="font-size:14px;">暂无技能数据可用于雷达图分析</div></div>';
+            return;
+        }
+
+        // 确保数据长度一致
+        const maxLength = Math.max(dimensions.length, jobWeights.length, userWeights.length);
+        const safeDimensions = dimensions.slice(0, maxLength);
+        const safeJobWeights = jobWeights.slice(0, maxLength).map(w => w || 0);
+        const safeUserWeights = userWeights.slice(0, maxLength).map(w => w || 0);
+
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#334155',
+                    fontSize: 12
+                },
+                formatter: function(params) {
+                    let tooltipHtml = `<strong>${params.seriesName}</strong><br/>`;
+                    params.value.forEach((val, index) => {
+                        if (index < safeDimensions.length) {
+                            const indicator = option.radar.indicator[index];
+                            const color = params.seriesIndex === 0 ? '#2563eb' : '#10b981';
+                            tooltipHtml += `<span style="color:${color};font-weight:500;">●</span> ${indicator.name}: <strong>${val.toFixed(1)}</strong><br/>`;
+                        }
+                    });
+                    return tooltipHtml;
+                }
+            },
+            legend: {
+                data: ['岗位需求', '个人掌握'],
+                bottom: 10,
+                textStyle: {
+                    fontSize: 12,
+                    color: '#64748b'
+                },
+                itemGap: 20,
+                itemWidth: 12,
+                itemHeight: 12
+            },
+            radar: {
+                indicator: safeDimensions.map((dim, index) => {
+                    const maxVal = Math.max(10, Math.ceil(Math.max(safeJobWeights[index] || 0, safeUserWeights[index] || 0) * 1.2));
+                    return {
+                        name: dim || `技能${index+1}`,
+                        max: maxVal
+                    };
+                }),
+                shape: 'circle',
+                splitNumber: 4,
+                name: {
+                    textStyle: {
+                        fontSize: 12,
+                        color: '#475569',
+                        fontWeight: 500
+                    }
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#e2e8f0',
+                        width: 1
+                    }
+                },
+                splitArea: {
+                    show: true,
+                    areaStyle: {
+                        color: ['rgba(248, 250, 252, 0.8)', 'rgba(255, 255, 255, 0.3)']
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#e2e8f0'
+                    }
+                }
+            },
+            series: [{
+                name: '技能匹配',
+                type: 'radar',
+                data: [
+                    {
+                        value: safeJobWeights,
+                        name: '岗位需求',
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        lineStyle: {
+                            width: 2,
+                            color: '#2563eb'
+                        },
+                        itemStyle: {
+                            color: '#2563eb'
+                        },
+                        areaStyle: {
+                            color: 'rgba(37, 99, 235, 0.2)'
+                        }
+                    },
+                    {
+                        value: safeUserWeights,
+                        name: '个人掌握',
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        lineStyle: {
+                            width: 2,
+                            color: '#10b981'
+                        },
+                        itemStyle: {
+                            color: '#10b981'
+                        },
+                        areaStyle: {
+                            color: 'rgba(16, 185, 129, 0.2)'
+                        }
+                    }
+                ]
+            }]
+        };
+
+        radarChart.setOption(option);
+
+        // 响应窗口大小变化
+        window.addEventListener('resize', function() {
+            radarChart.resize();
+        });
+
+    } catch (e) {
+        console.error('雷达图渲染失败：', e);
+        const radarChartDom = document.getElementById('radarChart');
+        if (radarChartDom) {
+            radarChartDom.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;"><div style="font-size:48px;margin-bottom:16px;">⚠️</div><div style="font-size:14px;">雷达图加载失败，请刷新页面</div></div>';
+        }
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}
